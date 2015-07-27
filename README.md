@@ -1,12 +1,19 @@
 
 Apache Kafka for Fastweb
 =================
-This project mirror form Kafka,you can 
-see kafka [web site](http://kafka.apache.org) for details on the project.
+This project implement function "Add IP Filtering / Whitelists-Blacklists" , the issue about  [KAFKA-1810](https://issues.apache.org/jira/browse/KAFKA-1810 "click") 
 
-In our project ,implement function "Add IP Filtering / Whitelists-Blacklists" , the issue about KAFKA-1810
+### Notice###
+in `server.properties` you can add your ip filter rule
 
-click   [KAFKA-1810](https://issues.apache.org/jira/browse/KAFKA-1810 "click") 
+- **security.ip.filter.rule.type** 
+
+	The type of IP Filtering list to be evaluated, either 'allow' (whitelist) or 'deny' (blacklist)
+
+- **security.ip.filter.list**
+
+	IP Whitelist / Blacklist, specified in CIDR notation eg, 192.168.1.1/32, 192.168.2.1/24 /32 is a single IPv4  address, /128 is a single IPv6 address
+
 
 You need to have [gradle](http://www.gradle.org/installation) installed.
 
@@ -114,6 +121,9 @@ Please note for this to work you should create/update `~/.gradle/gradle.properti
 ### Running in Vagrant ###
 
 See [vagrant/README.md](vagrant/README.md).
+
+
+
 
 ### Contribution ###
 
