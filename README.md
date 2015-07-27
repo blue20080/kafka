@@ -1,7 +1,12 @@
 
 Apache Kafka for Fastweb
 =================
-See our [web site](http://kafka.apache.org) for details on the project.
+This project mirror form Kafka base on 0.8.2 ,you can 
+see kafka [web site](http://kafka.apache.org) for details on the project.
+
+In our project ,implement function "Add IP Filtering / Whitelists-Blacklists" , the issue about KAFKA-1810
+
+click   [KAFKA-1810](https://issues.apache.org/jira/browse/KAFKA-1810 "click") 
 
 You need to have [gradle](http://www.gradle.org/installation) installed.
 
