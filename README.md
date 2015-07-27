@@ -1,7 +1,7 @@
 
 Apache Kafka for Fastweb
 =================
-This project mirror form Kafka base on 0.8.2 ,you can 
+This project mirror form Kafka,you can 
 see kafka [web site](http://kafka.apache.org) for details on the project.
 
 In our project ,implement function "Add IP Filtering / Whitelists-Blacklists" , the issue about KAFKA-1810

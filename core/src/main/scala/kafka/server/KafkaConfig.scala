@@ -20,6 +20,8 @@ package kafka.server
 import java.util
 import java.util.Properties
 
+import kafka.network.IpFilter
+
 import kafka.api.ApiVersion
 import kafka.cluster.EndPoint
 import kafka.consumer.ConsumerConfig
@@ -54,6 +56,11 @@ object Defaults {
   val MaxConnectionsPerIp: Int = Int.MaxValue
   val MaxConnectionsPerIpOverrides: String = ""
   val ConnectionsMaxIdleMs = 10 * 60 * 1000L
+
+  /** ********* ip Filter Configuration ***********/
+  val IpFilterRuleType:String = IpFilter.NoRule
+  val IpFilterList:String = ""
+
 
   /** ********* Log Configuration ***********/
   val NumPartitions = 1
@@ -172,6 +179,12 @@ object KafkaConfig {
   val MaxConnectionsPerIpProp = "max.connections.per.ip"
   val MaxConnectionsPerIpOverridesProp = "max.connections.per.ip.overrides"
   val ConnectionsMaxIdleMsProp = "connections.max.idle.ms"
+
+  /** ********* IP Filter Configuration ***********/
+  val IpFilterRuleTypeProp = "security.ip.filter.rule.type"
+  val IpFilterListProp = "security.ip.filter.list"
+
+
   /** ********* Log Configuration ***********/
   val NumPartitionsProp = "num.partitions"
   val LogDirsProp = "log.dirs"
@@ -392,6 +405,14 @@ object KafkaConfig {
     "('gzip', 'snappy', lz4). It additionally accepts 'uncompressed' which is equivalent to no compression; and " +
     "'producer' which means retain the original compression codec set by the producer."
 
+
+  /** ********* IP Filter ***********/
+  val IpFilterRuleTypeDoc = "The type of IP Filtering list to be evaluated, either 'allow' (whitelist) or 'deny' (blacklist)"
+  val IpFilterListDoc = "IP Whitelist / Blacklist, specified in CIDR notation eg, 192.168.1.1/32, 192.168.2.1/24 "  +
+    "/32 is a single IPv4  address, /128 is a single IPv6 address"
+
+
+
   val MetricSampleWindowMsDoc = CommonClientConfigs.METRICS_SAMPLE_WINDOW_MS_DOC
   val MetricNumSamplesDoc = CommonClientConfigs.METRICS_NUM_SAMPLES_DOC
   val MetricReporterClassesDoc = CommonClientConfigs.METRIC_REPORTER_CLASSES_DOC
@@ -520,6 +541,13 @@ object KafkaConfig {
       .define(MetricNumSamplesProp, INT, Defaults.MetricNumSamples, atLeast(1), LOW, MetricNumSamplesDoc)
       .define(MetricSampleWindowMsProp, LONG, Defaults.MetricSampleWindowMs, atLeast(1), LOW, MetricSampleWindowMsDoc)
       .define(MetricReporterClassesProp, LIST, Defaults.MetricReporterClasses, LOW, MetricReporterClassesDoc)
+
+      //IP Filter
+      .define(IpFilterRuleTypeProp, STRING, Defaults.IpFilterRuleType, MEDIUM, IpFilterRuleTypeDoc)
+      .define(IpFilterListProp, STRING, Defaults.IpFilterList, MEDIUM, IpFilterListDoc)
+
+
+
   }
 
   def configNames() = {
@@ -562,6 +590,11 @@ case class KafkaConfig (props: java.util.Map[_, _]) extends AbstractConfig(Kafka
   /** ********* General Configuration ***********/
   val maxReservedBrokerId: Int = getInt(KafkaConfig.MaxReservedBrokerIdProp)
   var brokerId: Int = getInt(KafkaConfig.BrokerIdProp)
+
+  //** IP Filter
+  var IpFilterRuleType: String = getString(KafkaConfig.IpFilterRuleTypeProp)
+  var IpFilterList: String = getString(KafkaConfig.IpFilterListProp)
+
   val numNetworkThreads = getInt(KafkaConfig.NumNetworkThreadsProp)
   val backgroundThreads = getInt(KafkaConfig.BackgroundThreadsProp)
   val queuedMaxRequests = getInt(KafkaConfig.QueuedMaxRequestsProp)
@@ -668,6 +701,12 @@ case class KafkaConfig (props: java.util.Map[_, _]) extends AbstractConfig(Kafka
   val advertisedListeners = getAdvertisedListeners
   val logRetentionTimeMillis = getLogRetentionTimeMillis
 
+
+  /** ********* IP Filter**************/
+  val IpFilters = new IpFilter(CoreUtils.parseCsvList(getString(KafkaConfig.IpFilterListProp)).toList, getString(KafkaConfig.IpFilterRuleTypeProp))
+
+
+
   private def getLogRetentionTimeMillis: Long = {
     val millisInMinute = 60L * 1000L
     val millisInHour = 60L * millisInMinute
@@ -767,5 +806,10 @@ case class KafkaConfig (props: java.util.Map[_, _]) extends AbstractConfig(Kafka
       "offsets.commit.required.acks must be greater or equal -1 and less or equal to offsets.topic.replication.factor")
     require(BrokerCompressionCodec.isValid(compressionType), "compression.type : " + compressionType + " is not valid." +
       " Valid options are " + BrokerCompressionCodec.brokerCompressionOptions.mkString(","))
+
+    require(IpFilterRuleType == IpFilter.AllowRule || IpFilterRuleType == IpFilter.DenyRule || IpFilterRuleType == IpFilter.NoRule,
+      "security.ip.filter.rule.type is invalid. Should be in (" + IpFilter.AllowRule + "|" + IpFilter.DenyRule + "|" + IpFilter.NoRule + ")")
+    require( (IpFilterList.isEmpty && IpFilterRuleType == IpFilter.NoRule) || ( !IpFilterList.isEmpty && IpFilterRuleType != IpFilter.NoRule),
+      "security.ip.filter.rule.type and security.ip.filter.list must both specified if defined.")
   }
 }

@@ -51,7 +51,8 @@ class SocketServerTest extends JUnitSuite {
                                               connectionsMaxIdleMs = 60*1000,
                                               maxConnectionsPerIpOverrides = Map.empty[String,Int],
                                               new SystemTime(),
-                                              new Metrics())
+                                              new Metrics(),
+                                              new IpFilter(List(""),""))//after to do it
   server.startup()
 
   def sendRequest(socket: Socket, id: Short, request: Array[Byte]) {
@@ -189,7 +190,9 @@ class SocketServerTest extends JUnitSuite {
                                                 connectionsMaxIdleMs = 60*1000,
                                                 maxConnectionsPerIpOverrides = overrides,
                                                 new SystemTime(),
-                                                new Metrics())
+                                                new Metrics(),
+                                                new IpFilter(List(""),""))//after to do it
+
     overrideServer.startup()
     // make the maximum allowable number of connections and then leak them
     val conns = ((0 until overrideNum).map(i => connect(overrideServer)))
