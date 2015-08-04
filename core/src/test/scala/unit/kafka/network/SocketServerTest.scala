@@ -52,7 +52,7 @@ class SocketServerTest extends JUnitSuite {
                                               maxConnectionsPerIpOverrides = Map.empty[String,Int],
                                               new SystemTime(),
                                               new Metrics(),
-                                              new IpFilter(List(""),""))//after to do it
+                                              new IpFilter(List("127.0.0.1/32"), IpFilter.AllowRule))//after to do it
   server.startup()
 
   def sendRequest(socket: Socket, id: Short, request: Array[Byte]) {
